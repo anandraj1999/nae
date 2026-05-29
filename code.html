@@ -3,102 +3,82 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>DRACE - Interstellar Racing HUD</title>
+<title>DRACE - Multiplayer Lobby</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Anybody:ital,wght@0,100..900;1,100..900&amp;family=Sora:wght@100..800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
-        @keyframes star-flicker {
-            0%, 100% { opacity: 0.2; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.2); }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
         }
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .hud-glass {
-            backdrop-filter: blur(20px);
-            background: rgba(21, 16, 38, 0.7);
-            border: 1px solid rgba(0, 219, 233, 0.4);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-        .skew-x-10 { transform: skewX(-10deg); }
-        .skew-x-5 { transform: skewX(-5deg); }
         
-        /* Segmented Progress Bar */
-        .segmented-bar {
-            display: flex;
-            gap: 2px;
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-color: #151026;
         }
-        .segment {
-            height: 12px;
-            width: 4px;
-            background: rgba(219, 252, 255, 0.2);
-        }
-        .segment.active-cyan { background: #00f0ff; box-shadow: 0 0 8px #00f0ff; }
-        .segment.active-magenta { background: #fe00fe; box-shadow: 0 0 8px #fe00fe; }
 
-        canvas#race-bg {
+        .starfield-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
-            background: radial-gradient(circle at center, #1e182e 0%, #151026 100%);
+            background: radial-gradient(circle at center, #221c33 0%, #100a20 100%);
+            overflow: hidden;
         }
 
-        /* Chromatic Aberration Effect at Edges */
-        .vignette-fx {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 10;
-            background: radial-gradient(circle, transparent 60%, rgba(255, 0, 255, 0.05) 85%, rgba(0, 240, 255, 0.1) 100%);
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
-        }
-
-        /* Neon Pulse Animation for HUD borders */
-        @keyframes neon-pulse {
-            0%, 100% { border-color: rgba(0, 219, 233, 0.4); }
-            50% { border-color: rgba(0, 219, 233, 0.9); box-shadow: 0 0 15px rgba(0, 219, 233, 0.4); }
-        }
-        .pulse-border {
-            animation: neon-pulse 2s infinite ease-in-out;
-        }
-
-        /* Motion Trail Effect for Car */
-        .motion-trail {
+        .star {
             position: absolute;
-            bottom: 20%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 300px;
-            height: 150px;
-            background: linear-gradient(to top, rgba(254, 0, 254, 0.15) 0%, transparent 80%);
-            filter: blur(20px);
-            z-index: 1;
-            border-radius: 50% 50% 0 0;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: moveStar linear infinite;
         }
 
-        /* Dynamic Engine Glow */
-        @keyframes engine-throb {
-            0%, 100% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.1); opacity: 0.9; }
+        @keyframes moveStar {
+            from { transform: translateY(0); }
+            to { transform: translateY(100vh); }
         }
-        .engine-glow {
-            position: absolute;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 180px;
-            height: 60px;
-            background: radial-gradient(ellipse at center, rgba(0, 240, 255, 0.6) 0%, transparent 70%);
-            filter: blur(15px);
-            animation: engine-throb 0.5s infinite alternate;
-            z-index: 2;
+
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            background: rgba(30, 24, 46, 0.4);
+            border: 1px solid rgba(0, 219, 233, 0.3);
+        }
+
+        .neon-border-cyan {
+            box-shadow: 0 0 15px rgba(0, 219, 233, 0.4);
+            border: 1px solid #00dbe9;
+        }
+
+        .skew-box {
+            transform: skewX(-5deg);
+        }
+
+        .skew-content {
+            transform: skewX(5deg);
+        }
+
+        .pulse-cyan {
+            animation: pulse-cyan 2s infinite;
+        }
+
+        @keyframes pulse-cyan {
+            0% { box-shadow: 0 0 5px rgba(0, 219, 233, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 219, 233, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(0, 219, 233, 0.5); }
+        }
+
+        .cursor-blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
         }
     </style>
 <script id="tailwind-config">
@@ -155,6 +135,18 @@
                         "secondary": "#ffabf3",
                         "tertiary-container": "#dbd4ff"
                     },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "margin": "40px",
+                        "unit": "4px"
+                    },
                     "fontFamily": {
                         "label-bold": ["Sora"],
                         "headline-lg": ["Anybody"],
@@ -169,233 +161,249 @@
                         "headline-lg-mobile": ["32px", {"lineHeight": "36px", "fontWeight": "800"}],
                         "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}]
                     }
-                }
-            }
+                },
+            },
         }
     </script>
 <style>
-        body {
-            min-height: max(884px, 100dvh);
-        }
-    </style>
-</head>
-<body class="bg-background text-on-background overflow-hidden h-screen w-screen selection:bg-primary-container selection:text-on-primary-container">
-<div class="vignette-fx"></div>
-<!-- Racing 3D Canvas (Starfield with streaks) -->
-<canvas id="race-bg"></canvas>
-<!-- Top App Bar -->
-<header class="bg-surface/60 backdrop-blur-2xl text-primary-fixed-dim w-full top-0 sticky border-b border-primary/40 shadow-[0_0_20px_rgba(0,219,233,0.4)] flex justify-between items-center px-6 py-4 z-50">
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface font-body-md">
+<!-- Starfield Background -->
+<div class="starfield-container" id="starfield"></div>
+<!-- TopAppBar Shell -->
+<header class="bg-surface/40 backdrop-blur-xl text-primary-fixed-dim w-full top-0 sticky border-b border-primary/30 shadow-[0_0_15px_rgba(0,219,233,0.3)] z-50 flex justify-between items-center px-gutter py-4">
 <div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
-<h1 class="font-display-xl text-[24px] text-primary-fixed-dim italic uppercase tracking-tighter leading-none">DRACE</h1>
+<span class="material-symbols-outlined text-primary-fixed-dim transition-all duration-300 active:scale-95" data-icon="rocket_launch">rocket_launch</span>
+<h1 class="font-display-xl text-primary-fixed-dim italic uppercase tracking-tighter text-[24px] md:text-[32px]">DRACE</h1>
 </div>
-<div class="flex items-center gap-4">
-<div class="bg-primary/10 border border-primary/40 px-3 py-1 -skew-x-12">
-<span class="font-label-bold text-label-bold text-primary-fixed-dim uppercase">1,500 CR</span>
+<div class="flex items-center gap-6">
+<span class="hidden md:flex font-label-bold text-on-surface-variant hover:text-secondary-fixed transition-all cursor-pointer">PILOT HUB</span>
+<span class="hidden md:flex font-label-bold text-on-surface-variant hover:text-secondary-fixed transition-all cursor-pointer">CIRCUITS</span>
+<div class="bg-primary/10 px-4 py-1 rounded-full border border-primary/20 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-fixed-dim text-sm" data-icon="toll">toll</span>
+<span class="font-label-bold text-primary-fixed-dim">1,500 CR</span>
 </div>
-<button class="material-symbols-outlined hover:text-secondary-fixed transition-all" data-icon="settings">settings</button>
 </div>
 </header>
-<!-- HUD OVERLAY -->
-<main class="relative h-[calc(100vh-64px)] w-full overflow-hidden flex flex-col justify-between p-6 md:p-10">
-<!-- Top HUD Row -->
-<div class="flex justify-between items-start w-full relative z-40">
-<div class="hud-glass px-6 py-3 -skew-x-12 border-l-4 border-l-primary-container pulse-border">
-<p class="font-label-bold text-[10px] text-primary-fixed-dim uppercase tracking-widest">Position</p>
-<h2 class="font-display-xl text-[40px] text-primary-fixed-dim leading-none">1<span class="text-body-md font-body-md opacity-60">/8</span></h2>
+<main class="max-w-container-max mx-auto px-gutter py-12 pb-32">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+<!-- Left Column: Room Controls -->
+<div class="md:col-span-5 space-y-8">
+<!-- Create Room Card -->
+<section class="glass-panel p-8 rounded-xl skew-box relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-2 opacity-20">
+<span class="material-symbols-outlined text-[80px]" data-icon="add_circle">add_circle</span>
 </div>
-<!-- Mini Map -->
-<div class="hud-glass w-32 h-32 md:w-48 md:h-48 p-2 rounded-lg border border-primary/30 relative overflow-hidden group pulse-border">
-<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/20 to-transparent"></div>
-<svg class="w-full h-full stroke-primary-fixed-dim fill-none stroke-[2.5px] opacity-80" viewbox="0 0 100 100">
-<path d="M50 10 C 80 10, 90 40, 90 60 C 90 80, 70 90, 50 90 C 30 90, 10 80, 10 60 C 10 40, 20 10, 50 10" stroke-dasharray="2 4"></path>
-<circle class="animate-pulse" cx="50" cy="10" fill="#00f0ff" r="4">
-<animatemotion dur="10s" path="M50 10 C 80 10, 90 40, 90 60 C 90 80, 70 90, 50 90 C 30 90, 10 80, 10 60 C 10 40, 20 10, 50 10" repeatcount="indefinite"></animatemotion>
-</circle>
-</svg>
-<div class="absolute bottom-2 right-2 font-label-bold text-[10px] text-primary-fixed-dim uppercase tracking-wider">Sector 2</div>
+<div class="skew-content space-y-6">
+<h2 class="font-headline-lg-mobile text-primary-fixed-dim uppercase italic">Create Room</h2>
+<p class="text-on-surface-variant text-sm">Host a new interstellar match and invite your squadron.</p>
+<div class="flex flex-col gap-4">
+<div class="bg-surface-container-lowest/80 border-b-2 border-primary-fixed-dim p-4 flex justify-between items-center group-hover:neon-border-cyan transition-all">
+<div>
+<span class="text-[10px] text-primary-fixed-dim font-label-bold uppercase">Room Access Code</span>
+<div class="font-display-xl text-[32px] text-white tracking-[0.5em] mt-1" id="roomCodeDisplay">------</div>
 </div>
-<div class="hud-glass px-6 py-3 -skew-x-12 border-r-4 border-r-secondary-container text-right pulse-border">
-<p class="font-label-bold text-[10px] text-secondary-fixed-dim uppercase tracking-widest">Lap</p>
-<h2 class="font-display-xl text-[40px] text-secondary-fixed-dim leading-none">1<span class="text-body-md font-body-md opacity-60">/3</span></h2>
+<button class="material-symbols-outlined text-primary-fixed-dim hover:rotate-180 transition-transform duration-500 cursor-pointer" data-icon="refresh" onclick="generateCode()">refresh</button>
 </div>
-</div>
-<!-- Center Viewport -->
-<div class="flex-grow flex items-center justify-center relative pointer-events-none">
-<!-- Engine Glow & Trail -->
-<div class="motion-trail"></div>
-<div class="engine-glow"></div>
-<!-- Cockpit Crosshair -->
-<div class="absolute w-40 h-40 border border-primary/20 rounded-full flex items-center justify-center opacity-50">
-<div class="w-1 h-8 bg-primary-container absolute top-0"></div>
-<div class="w-1 h-8 bg-primary-container absolute bottom-0"></div>
-<div class="h-1 w-8 bg-primary-container absolute left-0"></div>
-<div class="h-1 w-8 bg-primary-container absolute right-0"></div>
-</div>
-<!-- Car Rear Image -->
-<div class="w-full max-w-2xl transform translate-y-24 opacity-100 drop-shadow-[0_20px_60px_rgba(0,219,233,0.5)] z-10">
-<img alt="Futuristic Racing Craft" class="w-full h-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALWuMWkyjQzgLMuqzBBg1FUBLK4Db7DXZ5NlvPSfH84cPA5d-K0FG0-CP1Gr2cl-W_6sjFH8CCC8vm2NOb3ncIoduLwrGc1kF-x2_lGAvw-MQl7heuG26N1MiC0lMp49fcBbb78VEAZkh6FAhnNRkxqtRTB7xe-ihQbpI3gPmh0Z6UHXu0gmLmROKnQteAFHPFbK0Z5ShDEmr7U4C11Z_OyQv1ynHKyZ0J9jsnFqplsV9X0vW3BFZX3MDKaYuYVy6Knr9Px0EAso4"/>
-</div>
-</div>
-<!-- Bottom HUD: Speedometer & Controls -->
-<div class="flex flex-col md:flex-row justify-between items-end gap-6 w-full pb-8 relative z-40">
-<!-- Left: Steering Controls -->
-<div class="flex gap-4 md:opacity-60 hover:opacity-100 transition-opacity">
-<button class="hud-glass w-20 h-20 flex items-center justify-center -skew-x-12 active:bg-primary-container active:text-on-primary-container transition-all pulse-border">
-<span class="material-symbols-outlined text-4xl">arrow_back_ios</span>
-</button>
-<button class="hud-glass w-20 h-20 flex items-center justify-center -skew-x-12 active:bg-primary-container active:text-on-primary-container transition-all pulse-border">
-<span class="material-symbols-outlined text-4xl">arrow_forward_ios</span>
+<button class="w-full bg-primary-container text-on-primary-container font-label-bold py-4 skew-x-12 hover:shadow-[0_0_20px_#00f0ff] transition-all duration-300 active:scale-95 uppercase">
+<span class="-skew-x-12 inline-block">Initialize Lobby</span>
 </button>
 </div>
-<!-- Center: Speedometer Gauge -->
-<div class="flex flex-col items-center">
-<div class="relative w-48 h-24 overflow-hidden flex flex-col items-center justify-end border-b border-primary-container/50">
-<div class="absolute inset-x-0 bottom-0 h-48 border-4 border-primary/30 rounded-full"></div>
-<span class="font-display-xl text-[64px] text-primary-fixed-dim drop-shadow-[0_0_15px_rgba(0,240,255,0.9)] leading-none italic" id="speed-val">245</span>
-<span class="font-label-bold text-label-bold text-primary-fixed-dim/80 uppercase mb-2">Km/h</span>
 </div>
-<!-- Energy / Boost Bar -->
-<div class="mt-4 flex flex-col items-center gap-1">
-<div class="segmented-bar" id="boost-bar"></div>
-<span class="font-label-bold text-[10px] text-secondary-fixed-dim uppercase italic drop-shadow-[0_0_5px_rgba(254,0,254,0.5)]">Boost Ready</span>
+</section>
+<!-- Join Room Card -->
+<section class="glass-panel p-8 rounded-xl skew-box relative overflow-hidden border-secondary/30">
+<div class="skew-content space-y-6">
+<h2 class="font-headline-lg-mobile text-secondary-fixed uppercase italic">Join Room</h2>
+<div class="relative">
+<input class="w-full bg-transparent border-b-2 border-secondary-container text-secondary-fixed font-display-xl text-[24px] py-4 placeholder:text-secondary-fixed/20 focus:outline-none uppercase tracking-widest transition-all focus:border-secondary-fixed" id="joinInput" maxlength="6" placeholder="ENTER 6-CHAR CODE" type="text"/>
+<div class="absolute right-0 bottom-4 w-4 h-8 bg-primary-fixed-dim/20 cursor-blink"></div>
 </div>
-</div>
-<!-- Right: Accelerate/Brake Controls -->
-<div class="flex gap-4 md:opacity-60 hover:opacity-100 transition-opacity">
-<button class="hud-glass w-20 h-24 flex flex-col items-center justify-center -skew-x-12 border-t-4 border-t-error active:bg-error-container transition-all pulse-border">
-<span class="material-symbols-outlined">pedal_bike</span>
-<span class="font-label-bold text-[10px] mt-1">BRAKE</span>
+<button class="w-full bg-transparent border-2 border-secondary-container text-secondary-fixed font-label-bold py-4 -skew-x-12 hover:bg-secondary-container/20 transition-all duration-300 active:scale-95 uppercase">
+<span class="skew-x-12 inline-block">Sync Connection</span>
 </button>
-<button class="bg-primary-container text-on-primary-container w-28 h-24 flex flex-col items-center justify-center -skew-x-12 shadow-[0_0_30px_rgba(0,240,255,0.6)] active:scale-95 transition-all">
-<span class="material-symbols-outlined text-3xl">speed</span>
-<span class="font-label-bold text-sm mt-1">ACCEL</span>
+</div>
+</section>
+</div>
+<!-- Right Column: Player List -->
+<div class="md:col-span-7">
+<section class="glass-panel p-1 rounded-xl">
+<div class="bg-surface-container-low/80 p-6 rounded-lg space-y-6">
+<div class="flex justify-between items-end border-b border-white/10 pb-4">
+<div>
+<h2 class="font-headline-lg-mobile text-white uppercase">Active Squadron</h2>
+<span class="text-primary-fixed-dim font-label-bold text-[10px]">REGION: NEBULA-7 // PING: 24MS</span>
+</div>
+<div class="text-right">
+<span class="text-on-surface-variant text-[12px] block">SLOTS</span>
+<span class="text-white font-headline-lg-mobile text-[24px]">4<span class="text-on-surface-variant">/8</span></span>
+</div>
+</div>
+<div class="space-y-3">
+<!-- Player Row 1 (Host) -->
+<div class="flex items-center justify-between p-4 bg-primary/5 border-l-4 border-primary-fixed-dim skew-x-[-2deg] hover:bg-primary/10 transition-colors">
+<div class="flex items-center gap-4 skew-x-[2deg]">
+<div class="w-12 h-12 rounded-full border-2 border-primary-fixed-dim p-0.5 overflow-hidden">
+<img class="w-full h-full object-cover rounded-full" data-alt="A futuristic cybernetic character portrait with neon glowing visors and sleek metallic armor plating, set against a dark indigo space nebula background with high-contrast cyan highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeiImU8RmlRom8hOfZMnJaywElwmYjjRIkgkTPjefqYB5S7QlBTB3G2nVvWDnH4A_57BsL1ooiLyAbSbpKqzgP4F87HoRaOgBia8jTO1FgXDogkl0gJk3YH4BPps8bp-IKZCAbMauAAePpWQKFkv7STmyugVGVG_QiDGojvf1qRR2EfCZmuch0BniLw1-RhT7vsgw0xR9r4nL-Z1Nz4Fd1TagXIRWEb_m1PIbYCLi5WbQ4dyQmZCZClH5D8q2V9ZRj0zIYkdNX_3E"/>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="text-white font-label-bold">ACE_PILOT</span>
+<span class="bg-primary-fixed-dim text-on-primary-fixed text-[8px] px-1 rounded">HOST</span>
+</div>
+<span class="text-on-surface-variant text-[10px] uppercase">LVL 42 // ELITE</span>
+</div>
+</div>
+<div class="flex items-center gap-4 skew-x-[2deg]">
+<span class="text-primary-fixed-dim font-label-bold italic text-[12px] animate-pulse">READY</span>
+<span class="material-symbols-outlined text-primary-fixed-dim" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Player Row 2 -->
+<div class="flex items-center justify-between p-4 bg-white/5 border-l-4 border-transparent skew-x-[-2deg] hover:bg-white/10 transition-colors">
+<div class="flex items-center gap-4 skew-x-[2deg]">
+<div class="w-12 h-12 rounded-full border-2 border-white/20 p-0.5 overflow-hidden">
+<img class="w-full h-full object-cover rounded-full" data-alt="A gritty sci-fi racing pilot wearing a weathered flight suit and a high-tech communication headset, illuminated by dramatic magenta and indigo lighting in a dark hangar environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSfGQD1mqFdDYRKZm6VujCORvBue_cO9ht_Fx2AFGCb0RdZUMSr51LEsqEQABnMf8N16747hGr6DfsKebK3GDYgL3J-fJTJul6hPK7tG3q94vzqtFddYcqIg_8KqWufNTTOZKvPK0dO5HNpCKYQhZQtQefjBNrVRnbfjXxo4bZOmvcWXE1DUVdg5KfnFkbHm0xUGC1nIMjK-_a_ED7m4YAuPOcVfT0VqDA_2tnBFJqhyjD5NxxUWbGC6LyOs0DlcKEQlc1TPQvlkk"/>
+</div>
+<div>
+<span class="text-white font-label-bold">VOID_DRIFTER</span>
+<span class="text-on-surface-variant text-[10px] block uppercase">LVL 28 // ROOKIE</span>
+</div>
+</div>
+<div class="flex items-center gap-4 skew-x-[2deg]">
+<span class="text-on-surface-variant font-label-bold italic text-[12px]">NOT READY</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</div>
+</div>
+<!-- Player Row 3 -->
+<div class="flex items-center justify-between p-4 bg-white/5 border-l-4 border-transparent skew-x-[-2deg] hover:bg-white/10 transition-colors">
+<div class="flex items-center gap-4 skew-x-[2deg]">
+<div class="w-12 h-12 rounded-full border-2 border-white/20 p-0.5 overflow-hidden">
+<img class="w-full h-full object-cover rounded-full" data-alt="A futuristic female racing captain with holographic interfaces reflected in her eyes, wearing a sleek black and magenta flight jacket, atmospheric lighting with soft starfield background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHAhGaDt4zQwfIWPk04J3fWraLcTt-c2ejtzsTt1totUuqGIBvbis5kQZAnkkKhmLx7poL33UEFjJ4mFtQRsNrOj3H5rAixSjNjYwj2f5UCy54zMaDCDNAioBJdCVCzQ4wZFbR0ykFW4DDVnOa0_qjPjyFua7q-GkbqGuEzPgtnbsOjb9n2MdDTeIP4JxPFdx_hmHCOMJmLALbLHCKi5mHDXN7tzzuov4NGKZKmwxMayvOiYyk_9PfWtanWlHZCvMe-ZOVuWdJQPA"/>
+</div>
+<div>
+<span class="text-white font-label-bold">NEON_VALKYRIE</span>
+<span class="text-on-surface-variant text-[10px] block uppercase">LVL 55 // LEGEND</span>
+</div>
+</div>
+<div class="flex items-center gap-4 skew-x-[2deg]">
+<span class="text-primary-fixed-dim font-label-bold italic text-[12px]">READY</span>
+<span class="material-symbols-outlined text-primary-fixed-dim" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Player Row 4 -->
+<div class="flex items-center justify-between p-4 bg-white/5 border-l-4 border-transparent skew-x-[-2deg] hover:bg-white/10 transition-colors">
+<div class="flex items-center gap-4 skew-x-[2deg]">
+<div class="w-12 h-12 rounded-full border-2 border-white/20 p-0.5 overflow-hidden">
+<div class="w-full h-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+</div>
+<div>
+<span class="text-on-surface-variant font-label-bold italic uppercase">Waiting...</span>
+</div>
+</div>
+<div class="flex items-center gap-4 skew-x-[2deg]">
+<button class="bg-secondary/10 hover:bg-secondary/20 text-secondary-fixed border border-secondary/30 px-4 py-1 text-[10px] font-label-bold rounded transition-all">INVITE</button>
+</div>
+</div>
+</div>
+<!-- Progress Hud Section -->
+<div class="pt-6 border-t border-white/10 flex flex-wrap gap-6 items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="space-y-1">
+<span class="text-[10px] text-on-surface-variant block">SYNCHRONIZATION</span>
+<div class="flex gap-1">
+<div class="h-4 w-2 bg-primary-fixed-dim shadow-[0_0_5px_#00dbe9]"></div>
+<div class="h-4 w-2 bg-primary-fixed-dim shadow-[0_0_5px_#00dbe9]"></div>
+<div class="h-4 w-2 bg-primary-fixed-dim shadow-[0_0_5px_#00dbe9]"></div>
+<div class="h-4 w-2 bg-primary-fixed-dim/20"></div>
+<div class="h-4 w-2 bg-primary-fixed-dim/20"></div>
+</div>
+</div>
+<div class="space-y-1">
+<span class="text-[10px] text-on-surface-variant block">LATENCY</span>
+<span class="text-secondary-fixed font-label-bold">0.024s</span>
+</div>
+</div>
+<button class="bg-primary-container text-on-primary-container font-label-bold px-10 py-4 skew-x-[-15deg] hover:shadow-[0_0_25px_#00f0ff] transition-all group overflow-hidden relative">
+<span class="skew-x-[15deg] flex items-center gap-3 relative z-10">
+<span class="material-symbols-outlined" data-icon="stadium">stadium</span>
+                                    LAUNCH RACE
+                                </span>
+<div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
 </button>
+</div>
+</div>
+</section>
 </div>
 </div>
 </main>
-<!-- Bottom Navigation (Desktop Only) -->
-<nav class="bg-surface-container/60 backdrop-blur-2xl fixed bottom-0 w-full z-50 rounded-t-2xl border-t border-primary/30 shadow-[0_-10px_30px_rgba(0,0,0,0.7)] flex justify-around items-center px-4 pb-4 pt-2 hidden md:flex">
-<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-6 py-2 -skew-x-12 shadow-[0_0_15px_#00f0ff] transition-transform duration-200 active:scale-90">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">speed</span>
-<span class="font-label-bold text-label-bold">RACE</span>
-</div>
-<div class="flex flex-col items-center justify-center text-primary-fixed-dim px-4 py-2 opacity-70 hover:opacity-100 hover:text-secondary-fixed transition-transform duration-200 active:scale-90">
-<span class="material-symbols-outlined">directions_car</span>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-surface-container/40 backdrop-blur-lg border-t border-primary/20 shadow-[0_-5px_20px_rgba(0,0,0,0.5)] rounded-t-xl">
+<!-- RACE - Active -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-6 py-2 -skew-x-12 shadow-[0_0_10px_#00f0ff] transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined skew-x-12" data-icon="speed" style="font-variation-settings: 'FILL' 1;">speed</span>
+<span class="font-label-bold text-label-bold skew-x-12">RACE</span>
+</a>
+<!-- GARAGE -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 opacity-70 hover:opacity-100 hover:text-secondary-fixed transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span>
 <span class="font-label-bold text-label-bold">GARAGE</span>
-</div>
-<div class="flex flex-col items-center justify-center text-primary-fixed-dim px-4 py-2 opacity-70 hover:opacity-100 hover:text-secondary-fixed transition-transform duration-200 active:scale-90">
-<span class="material-symbols-outlined">groups</span>
+</a>
+<!-- SOCIAL -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 opacity-70 hover:opacity-100 hover:text-secondary-fixed transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
 <span class="font-label-bold text-label-bold">SOCIAL</span>
-</div>
-<div class="flex flex-col items-center justify-center text-primary-fixed-dim px-4 py-2 opacity-70 hover:opacity-100 hover:text-secondary-fixed transition-transform duration-200 active:scale-90">
-<span class="material-symbols-outlined">settings</span>
+</a>
+<!-- SETTINGS -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 opacity-70 hover:opacity-100 hover:text-secondary-fixed transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
 <span class="font-label-bold text-label-bold">SETTINGS</span>
-</div>
+</a>
 </nav>
 <script>
-    // Starfield + Light Speed Streaks
-    const canvas = document.getElementById('race-bg');
-    const ctx = canvas.getContext('2d');
-    let stars = [];
-    const starCount = 600;
-    let speedMult = 15;
+        // Starfield background generation
+        const starfield = document.getElementById('starfield');
+        const starCount = 150;
 
-    function initStars() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        stars = [];
         for (let i = 0; i < starCount; i++) {
-            stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                z: Math.random() * canvas.width,
-                size: Math.random() * 2
-            });
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 2 + 1;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.left = `${Math.random() * 100}vw`;
+            star.style.top = `${Math.random() * 100}vh`;
+            star.style.animationDuration = `${Math.random() * 20 + 10}s`;
+            star.style.animationDelay = `-${Math.random() * 20}s`;
+            starfield.appendChild(star);
         }
-    }
 
-    function drawStars() {
-        ctx.fillStyle = "rgba(21, 16, 38, 0.4)"; // Faded trail for movement effect
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-
-        stars.forEach(star => {
-            const oldZ = star.z;
-            star.z -= speedMult; 
-            
-            if (star.z <= 0) {
-                star.z = canvas.width;
-                star.x = Math.random() * canvas.width;
-                star.y = Math.random() * canvas.height;
+        // Room Code Generation Logic
+        function generateCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
             }
+            const display = document.getElementById('roomCodeDisplay');
+            display.innerText = result;
+            display.classList.add('pulse-cyan');
+            setTimeout(() => display.classList.remove('pulse-cyan'), 1000);
+        }
 
-            const k = 128.0 / star.z;
-            const px = (star.x - centerX) * k + centerX;
-            const py = (star.y - centerY) * k + centerY;
-
-            const oldK = 128.0 / oldZ;
-            const oldPX = (star.x - centerX) * oldK + centerX;
-            const oldPY = (star.y - centerY) * oldK + centerY;
-
-            if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
-                const opacity = 1 - star.z / canvas.width;
-                
-                // Draw Streak
-                ctx.beginPath();
-                ctx.strokeStyle = `rgba(219, 252, 255, ${opacity * 0.8})`;
-                ctx.lineWidth = (1 - star.z / canvas.width) * 3;
-                ctx.moveTo(oldPX, oldPY);
-                ctx.lineTo(px, py);
-                ctx.stroke();
-
-                // Draw Core Star
-                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-                ctx.beginPath();
-                ctx.arc(px, py, (1 - star.z / canvas.width) * 1.5, 0, Math.PI * 2);
-                ctx.fill();
-            }
+        // Visual feedback for Join Room input
+        const joinInput = document.getElementById('joinInput');
+        joinInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase();
         });
-        
-        // Slightly increase speed over time up to a cap
-        if(speedMult < 45) speedMult += 0.002;
 
-        requestAnimationFrame(drawStars);
-    }
-
-    window.addEventListener('resize', initStars);
-    initStars();
-    drawStars();
-
-    // Speedometer dynamic value
-    const speedEl = document.getElementById('speed-val');
-    setInterval(() => {
-        const current = parseInt(speedEl.innerText);
-        const fluctuation = Math.floor(Math.random() * 7) - 3;
-        speedEl.innerText = Math.max(240, Math.min(275, current + fluctuation));
-    }, 100);
-
-    // Boost Bar generation
-    const boostBar = document.getElementById('boost-bar');
-    for (let i = 0; i < 24; i++) {
-        const segment = document.createElement('div');
-        segment.className = 'segment';
-        if (i < 18) segment.classList.add('active-cyan');
-        if (i >= 20) segment.classList.add('active-magenta');
-        boostBar.appendChild(segment);
-    }
-
-    // Engine Pulse Reaction Logic (Visual Fake)
-    const engineGlow = document.querySelector('.engine-glow');
-    let tick = 0;
-    function pulseLogic() {
-        tick++;
-        const intensity = Math.sin(tick * 0.2) * 5 + 15;
-        engineGlow.style.filter = `blur(${intensity}px)`;
-        requestAnimationFrame(pulseLogic);
-    }
-    pulseLogic();
-</script>
+        // Initialize with a code
+        window.onload = generateCode;
+    </script>
 </body></html>
