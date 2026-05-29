@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DRACE - Interstellar Racing HUD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:ital,wght@0,100..900;1,100..900&amp;family=Sora:wght@100..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes star-flicker {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hud-glass {
+            backdrop-filter: blur(20px);
+            background: rgba(21, 16, 38, 0.7);
+            border: 1px solid rgba(0, 219, 233, 0.4);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        .skew-x-10 { transform: skewX(-10deg); }
+        .skew-x-5 { transform: skewX(-5deg); }
+        
+        /* Segmented Progress Bar */
+        .segmented-bar {
+            display: flex;
+            gap: 2px;
+        }
+        .segment {
+            height: 12px;
+            width: 4px;
+            background: rgba(219, 252, 255, 0.2);
+        }
+        .segment.active-cyan { background: #00f0ff; box-shadow: 0 0 8px #00f0ff; }
+        .segment.active-magenta { background: #fe00fe; box-shadow: 0 0 8px #fe00fe; }
+
+        canvas#race-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1e182e 0%, #151026 100%);
+        }
+
+        /* Chromatic Aberration Effect at Edges */
+        .vignette-fx {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            background: radial-gradient(circle, transparent 60%, rgba(255, 0, 255, 0.05) 85%, rgba(0, 240, 255, 0.1) 100%);
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.4);
+        }
+
+        /* Neon Pulse Animation for HUD borders */
+        @keyframes neon-pulse {
+            0%, 100% { border-color: rgba(0, 219, 233, 0.4); }
+            50% { border-color: rgba(0, 219, 233, 0.9); box-shadow: 0 0 15px rgba(0, 219, 233, 0.4); }
+        }
+        .pulse-border {
+            animation: neon-pulse 2s infinite ease-in-out;
+        }
+
+        /* Motion Trail Effect for Car */
+        .motion-trail {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 150px;
+            background: linear-gradient(to top, rgba(254, 0, 254, 0.15) 0%, transparent 80%);
+            filter: blur(20px);
+            z-index: 1;
+            border-radius: 50% 50% 0 0;
+        }
+
+        /* Dynamic Engine Glow */
+        @keyframes engine-throb {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 0.9; }
+        }
+        .engine-glow {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 60px;
+            background: radial-gradient(ellipse at center, rgba(0, 240, 255, 0.6) 0%, transparent 70%);
+            filter: blur(15px);
+            animation: engine-throb 0.5s infinite alternate;
+            z-index: 2;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#ffd7f5",
+                        "secondary-fixed-dim": "#ffabf3",
+                        "secondary-container": "#fe00fe",
+                        "primary-fixed-dim": "#00dbe9",
+                        "on-secondary-container": "#500050",
+                        "on-primary-fixed-variant": "#004f54",
+                        "on-primary-container": "#006970",
+                        "surface": "#151026",
+                        "on-error": "#690005",
+                        "surface-tint": "#00dbe9",
+                        "primary-container": "#00f0ff",
+                        "on-surface-variant": "#b9cacb",
+                        "on-secondary-fixed": "#380038",
+                        "on-secondary-fixed-variant": "#810081",
+                        "surface-container-lowest": "#100a20",
+                        "surface-container-high": "#2d263e",
+                        "tertiary": "#f8f4ff",
+                        "surface-container-highest": "#383149",
+                        "on-tertiary-fixed-variant": "#464170",
+                        "surface-container": "#221c33",
+                        "on-primary": "#00363a",
+                        "on-error-container": "#ffdad6",
+                        "inverse-on-surface": "#332d44",
+                        "on-tertiary-container": "#5e598a",
+                        "error": "#ffb4ab",
+                        "surface-container-low": "#1e182e",
+                        "on-secondary": "#5b005b",
+                        "on-primary-fixed": "#002022",
+                        "primary": "#dbfcff",
+                        "outline-variant": "#3b494b",
+                        "background": "#151026",
+                        "on-tertiary-fixed": "#1a1442",
+                        "outline": "#849495",
+                        "tertiary-fixed-dim": "#c7c0f8",
+                        "on-background": "#e8defd",
+                        "on-tertiary": "#2f2a58",
+                        "inverse-surface": "#e8defd",
+                        "tertiary-fixed": "#e4dfff",
+                        "error-container": "#93000a",
+                        "surface-dim": "#151026",
+                        "inverse-primary": "#006970",
+                        "surface-variant": "#383149",
+                        "primary-fixed": "#7df4ff",
+                        "on-surface": "#e8defd",
+                        "surface-bright": "#3c364e",
+                        "secondary": "#ffabf3",
+                        "tertiary-container": "#dbd4ff"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Sora"],
+                        "headline-lg": ["Anybody"],
+                        "display-xl": ["Anybody"],
+                        "headline-lg-mobile": ["Anybody"],
+                        "body-md": ["Sora"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "headline-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "display-xl": ["80px", {"lineHeight": "80px", "letterSpacing": "-0.04em", "fontWeight": "900"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "36px", "fontWeight": "800"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background overflow-hidden h-screen w-screen selection:bg-primary-container selection:text-on-primary-container">
+<div class="vignette-fx"></div>
+<!-- Racing 3D Canvas (Starfield with streaks) -->
+<canvas id="race-bg"></canvas>
+<!-- Top App Bar -->
+<header class="bg-surface/60 backdrop-blur-2xl text-primary-fixed-dim w-full top-0 sticky border-b border-primary/40 shadow-[0_0_20px_rgba(0,219,233,0.4)] flex justify-between items-center px-6 py-4 z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+<h1 class="font-display-xl text-[24px] text-primary-fixed-dim italic uppercase tracking-tighter leading-none">DRACE</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-primary/10 border border-primary/40 px-3 py-1 -skew-x-12">
+<span class="font-label-bold text-label-bold text-primary-fixed-dim uppercase">1,500 CR</span>
+</div>
+<button class="material-symbols-outlined hover:text-secondary-fixed transition-all" data-icon="settings">settings</button>
+</div>
+</header>
+<!-- HUD OVERLAY -->
+<main class="relative h-[calc(100vh-64px)] w-full overflow-hidden flex flex-col justify-between p-6 md:p-10">
+<!-- Top HUD Row -->
+<div class="flex justify-between items-start w-full relative z-40">
+<div class="hud-glass px-6 py-3 -skew-x-12 border-l-4 border-l-primary-container pulse-border">
+<p class="font-label-bold text-[10px] text-primary-fixed-dim uppercase tracking-widest">Position</p>
+<h2 class="font-display-xl text-[40px] text-primary-fixed-dim leading-none">1<span class="text-body-md font-body-md opacity-60">/8</span></h2>
+</div>
+<!-- Mini Map -->
+<div class="hud-glass w-32 h-32 md:w-48 md:h-48 p-2 rounded-lg border border-primary/30 relative overflow-hidden group pulse-border">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/20 to-transparent"></div>
+<svg class="w-full h-full stroke-primary-fixed-dim fill-none stroke-[2.5px] opacity-80" viewbox="0 0 100 100">
+<path d="M50 10 C 80 10, 90 40, 90 60 C 90 80, 70 90, 50 90 C 30 90, 10 80, 10 60 C 10 40, 20 10, 50 10" stroke-dasharray="2 4"></path>
+<circle class="animate-pulse" cx="50" cy="10" fill="#00f0ff" r="4">
+<animatemotion dur="10s" path="M50 10 C 80 10, 90 40, 90 60 C 90 80, 70 90, 50 90 C 30 90, 10 80, 10 60 C 10 40, 20 10, 50 10" repeatcount="indefinite"></animatemotion>
+</circle>
+</svg>
+<div class="absolute bottom-2 right-2 font-label-bold text-[10px] text-primary-fixed-dim uppercase tracking-wider">Sector 2</div>
+</div>
+<div class="hud-glass px-6 py-3 -skew-x-12 border-r-4 border-r-secondary-container text-right pulse-border">
+<p class="font-label-bold text-[10px] text-secondary-fixed-dim uppercase tracking-widest">Lap</p>
+<h2 class="font-display-xl text-[40px] text-secondary-fixed-dim leading-none">1<span class="text-body-md font-body-md opacity-60">/3</span></h2>
+</div>
+</div>
+<!-- Center Viewport -->
+<div class="flex-grow flex items-center justify-center relative pointer-events-none">
+<!-- Engine Glow & Trail -->
+<div class="motion-trail"></div>
+<div class="engine-glow"></div>
+<!-- Cockpit Crosshair -->
+<div class="absolute w-40 h-40 border border-primary/20 rounded-full flex items-center justify-center opacity-50">
+<div class="w-1 h-8 bg-primary-container absolute top-0"></div>
+<div class="w-1 h-8 bg-primary-container absolute bottom-0"></div>
+<div class="h-1 w-8 bg-primary-container absolute left-0"></div>
+<div class="h-1 w-8 bg-primary-container absolute right-0"></div>
+</div>
+<!-- Car Rear Image -->
+<div class="w-full max-w-2xl transform translate-y-24 opacity-100 drop-shadow-[0_20px_60px_rgba(0,219,233,0.5)] z-10">
+<img alt="Futuristic Racing Craft" class="w-full h-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALWuMWkyjQzgLMuqzBBg1FUBLK4Db7DXZ5NlvPSfH84cPA5d-K0FG0-CP1Gr2cl-W_6sjFH8CCC8vm2NOb3ncIoduLwrGc1kF-x2_lGAvw-MQl7heuG26N1MiC0lMp49fcBbb78VEAZkh6FAhnNRkxqtRTB7xe-ihQbpI3gPmh0Z6UHXu0gmLmROKnQteAFHPFbK0Z5ShDEmr7U4C11Z_OyQv1ynHKyZ0J9jsnFqplsV9X0vW3BFZX3MDKaYuYVy6Knr9Px0EAso4"/>
+</div>
+</div>
+<!-- Bottom HUD: Speedometer & Controls -->
+<div class="flex flex-col md:flex-row justify-between items-end gap-6 w-full pb-8 relative z-40">
+<!-- Left: Steering Controls -->
+<div class="flex gap-4 md:opacity-60 hover:opacity-100 transition-opacity">
+<button class="hud-glass w-20 h-20 flex items-center justify-center -skew-x-12 active:bg-primary-container active:text-on-primary-container transition-all pulse-border">
+<span class="material-symbols-outlined text-4xl">arrow_back_ios</span>
+</button>
+<button class="hud-glass w-20 h-20 flex items-center justify-center -skew-x-12 active:bg-primary-container active:text-on-primary-container transition-all pulse-border">
+<span class="material-symbols-outlined text-4xl">arrow_forward_ios</span>
+</button>
+</div>
+<!-- Center: Speedometer Gauge -->
+<div class="flex flex-col items-center">
+<div class="relative w-48 h-24 overflow-hidden flex flex-col items-center justify-end border-b border-primary-container/50">
+<div class="absolute inset-x-0 bottom-0 h-48 border-4 border-primary/30 rounded-full"></div>
+<span class="font-display-xl text-[64px] text-primary-fixed-dim drop-shadow-[0_0_15px_rgba(0,240,255,0.9)] leading-none italic" id="speed-val">245</span>
+<span class="font-label-bold text-label-bold text-primary-fixed-dim/80 uppercase mb-2">Km/h</span>
+</div>
+<!-- Energy / Boost Bar -->
+<div class="mt-4 flex flex-col items-center gap-1">
+<div class="segmented-bar" id="boost-bar"></div>
+<span class="font-label-bold text-[10px] text-secondary-fixed-dim uppercase italic drop-shadow-[0_0_5px_rgba(254,0,254,0.5)]">Boost Ready</span>
+</div>
+</div>
+<!-- Right: Accelerate/Brake Controls -->
+<div class="flex gap-4 md:opacity-60 hover:opacity-100 transition-opacity">
+<button class="hud-glass w-20 h-24 flex flex-col items-center justify-center -skew-x-12 border-t-4 border-t-error active:bg-error-container transition-all pulse-border">
+<span class="material-symbols-outlined">pedal_bike</span>
+<span class="font-label-bold text-[10px] mt-1">BRAKE</span>
+</button>
+<button class="bg-primary-container text-on-primary-container w-28 h-24 flex flex-col items-center justify-center -skew-x-12 shadow-[0_0_30px_rgba(0,240,255,0.6)] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">speed</span>
+<span class="font-label-bold text-sm mt-1">ACCEL</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (Desktop Only) -->
+<nav class="bg-surface-container/60 backdrop-blur-2xl fixed bottom-0 w-full z-50 rounded-t-2xl border-t border-primary/30 shadow-[0_-10px_30px_rgba(0,0,0,0.7)] flex justify-around items-center px-4 pb-4 pt-2 hidden md:flex">
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-6 py-2 -skew-x-12 shadow-[0_0_15px_#00f0ff] transition-transform duration-200 active:scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">speed</span>
+<span class="font-label-bold text-label-bold">RACE</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary-fixed-dim px-4 py-2 opacity-70 hover:opacity-100 hover:text-secondary-fixed transition-transform duration-200 active:scale-90">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="font-label-bold text-label-bold">GARAGE</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary-fixed-dim px-4 py-2 opacity-70 hover:opacity-100 hover:text-secondary-fixed transition-transform duration-200 active:scale-90">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-bold text-label-bold">SOCIAL</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary-fixed-dim px-4 py-2 opacity-70 hover:opacity-100 hover:text-secondary-fixed transition-transform duration-200 active:scale-90">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-bold text-label-bold">SETTINGS</span>
+</div>
+</nav>
+<script>
+    // Starfield + Light Speed Streaks
+    const canvas = document.getElementById('race-bg');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    const starCount = 600;
+    let speedMult = 15;
+
+    function initStars() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        stars = [];
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                z: Math.random() * canvas.width,
+                size: Math.random() * 2
+            });
+        }
+    }
+
+    function drawStars() {
+        ctx.fillStyle = "rgba(21, 16, 38, 0.4)"; // Faded trail for movement effect
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        stars.forEach(star => {
+            const oldZ = star.z;
+            star.z -= speedMult; 
+            
+            if (star.z <= 0) {
+                star.z = canvas.width;
+                star.x = Math.random() * canvas.width;
+                star.y = Math.random() * canvas.height;
+            }
+
+            const k = 128.0 / star.z;
+            const px = (star.x - centerX) * k + centerX;
+            const py = (star.y - centerY) * k + centerY;
+
+            const oldK = 128.0 / oldZ;
+            const oldPX = (star.x - centerX) * oldK + centerX;
+            const oldPY = (star.y - centerY) * oldK + centerY;
+
+            if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
+                const opacity = 1 - star.z / canvas.width;
+                
+                // Draw Streak
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(219, 252, 255, ${opacity * 0.8})`;
+                ctx.lineWidth = (1 - star.z / canvas.width) * 3;
+                ctx.moveTo(oldPX, oldPY);
+                ctx.lineTo(px, py);
+                ctx.stroke();
+
+                // Draw Core Star
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                ctx.beginPath();
+                ctx.arc(px, py, (1 - star.z / canvas.width) * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+        
+        // Slightly increase speed over time up to a cap
+        if(speedMult < 45) speedMult += 0.002;
+
+        requestAnimationFrame(drawStars);
+    }
+
+    window.addEventListener('resize', initStars);
+    initStars();
+    drawStars();
+
+    // Speedometer dynamic value
+    const speedEl = document.getElementById('speed-val');
+    setInterval(() => {
+        const current = parseInt(speedEl.innerText);
+        const fluctuation = Math.floor(Math.random() * 7) - 3;
+        speedEl.innerText = Math.max(240, Math.min(275, current + fluctuation));
+    }, 100);
+
+    // Boost Bar generation
+    const boostBar = document.getElementById('boost-bar');
+    for (let i = 0; i < 24; i++) {
+        const segment = document.createElement('div');
+        segment.className = 'segment';
+        if (i < 18) segment.classList.add('active-cyan');
+        if (i >= 20) segment.classList.add('active-magenta');
+        boostBar.appendChild(segment);
+    }
+
+    // Engine Pulse Reaction Logic (Visual Fake)
+    const engineGlow = document.querySelector('.engine-glow');
+    let tick = 0;
+    function pulseLogic() {
+        tick++;
+        const intensity = Math.sin(tick * 0.2) * 5 + 15;
+        engineGlow.style.filter = `blur(${intensity}px)`;
+        requestAnimationFrame(pulseLogic);
+    }
+    pulseLogic();
+</script>
+</body></html>
